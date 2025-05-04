@@ -1,7 +1,8 @@
-void setupWiFi(){
-  if(enableWiFi==1){
-    Blynk.begin(auth,ssid,pass);
-    WIFI = 1;
+void setup_wifi() {
+  delay(10);
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
   }
 }
 
@@ -15,29 +16,40 @@ void Wireless_Telemetry(){
     if(batteryPercent<=10) {LED3=200;}else{LED3=0;}  //LOW BATTERY STATUS
     if(IUV==0)             {LED4=200;}else{LED4=0;}  //PV INPUT PRESENCE STATUS
 
-    Blynk.run();  
-    Blynk.virtualWrite(1,powerInput); 
-    Blynk.virtualWrite(2,batteryPercent);
-    Blynk.virtualWrite(3,voltageInput);    
-    Blynk.virtualWrite(4,currentInput);   
-    Blynk.virtualWrite(5,voltageOutput); 
-    Blynk.virtualWrite(6,currentOutput); 
-    Blynk.virtualWrite(7,temperature); 
-    Blynk.virtualWrite(8,Wh/1000); 
-    Blynk.virtualWrite(9,energySavings);       
-    Blynk.virtualWrite(10,LED1);               //LED - Battery Charging Status
-    Blynk.virtualWrite(11,LED2);               //LED - Full Battery Charge Status
-    Blynk.virtualWrite(12,LED3);               //LED - Low Battery Charge Status
-    Blynk.virtualWrite(13,LED4);               //LED - PV Harvesting
-    
-    Blynk.virtualWrite(14,voltageBatteryMin);  //Minimum Battery Voltage (Read & Write)
-    Blynk.virtualWrite(15,voltageBatteryMax);  //Maximum Battery Voltage (Read & Write)
-    Blynk.virtualWrite(16,currentCharging);    //Charging Current  (Read & Write)
-    Blynk.virtualWrite(17,electricalPrice);    //Electrical Price  (Write)
+  if (!client.connected()) {
+    client.connect("ESP32_PV", mqtt_user, mqtt_password);
   }
-  ////////// WIFI TELEMETRY ////////// 
-  if(enableBluetooth==1){
-    //ADD BLUETOOTH CODE
+  client.loop();
+
+  char buf[16];
+
+  dtostrf(powerInput, 1, 2, buf);
+  client.publish("pv/powerInput", buf);
+
+  dtostrf(batteryPercent, 1, 2, buf);
+  client.publish("pv/batteryPercent", buf);
+
+  dtostrf(voltageInput, 1, 2, buf);
+  client.publish("pv/voltageInput", buf);
+
+  dtostrf(currentInput, 1, 2, buf);
+  client.publish("pv/currentInput", buf);
+
+  dtostrf(voltageOutput, 1, 2, buf);
+  client.publish("pv/voltageOutput", buf);
+
+  dtostrf(currentOutput, 1, 2, buf);
+  client.publish("pv/currentOutput", buf);
+
+  dtostrf(temperature, 1, 2, buf);
+  client.publish("pv/temperature", buf);
+
+  dtostrf(Wh / 1000.0, 1, 2, buf);
+  client.publish("pv/energy_kWh", buf);
+
+  dtostrf(energySavings, 1, 2, buf);
+  client.publish("pv/energySavings", buf);
+
+
   }
-  
 } 
